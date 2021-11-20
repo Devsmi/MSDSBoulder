@@ -1,0 +1,50 @@
+---
+title: "NYPD_shooting_assingment"
+date: "11/7/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+## At beginning we will load few libraries which will be useful for our further data cleaning and visualization.
+library(dplyr)
+library(ggplot2)
+library(tinytex)
+
+# Here we are reading the data frame to dt1 variable from our source. The source can be a local data file or from any remote location. In our use case we are using a file located remotely.
+url_in <- "https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD"
+dt1 <- read.csv(url_in)
+
+# Here we are cleaning the data frame to filter out extra attributes from the data frame for further  analysis
+dt1 <- dt1 %>% select(-c(Lon_Lat, X_COORD_CD,Y_COORD_CD,Latitude, Longitude,LOCATION_DESC,PERP_SEX,PERP_AGE_GROUP,PERP_SEX,PERP_RACE))
+
+
+# After the cleaning and restructing of data we will use the below command to verify show the structure of data frame.
+str(dt1)
+
+# In below command we are retrieving our first summary from the data frame to review numerical min/max/mean of the data frame
+summary(dt1)
+
+#Here we are changing the format of Occur date from char to Date for our analysis.
+dt1$OCCUR_DATE <- as.Date(dt1$OCCUR_DATE, "%m/%d/%Y")
+
+# In this section we are building a data set  on incident based on area (BORO). This helped to visualize which BORO had more or less incidents for entire duration. 
+dt2 <- data.frame(table(dt1$BORO))
+plot(dt2,main = " Incident based on Area", xlab = "BORO", ylab="Incident Count")
+
+# In this section we are building a data set  on incident based on age group. This helped to visualize which age group is more vulnerable during entire duration. 
+data.frame(table(dt1$VIC_AGE_GROUP))
+plot(data.frame(table(dt1$VIC_AGE_GROUP)),main = " Incident based on Age group", xlab = "Age Group", ylab="Incident count")
+
+# We are plotting another graph here to analyse incident pattern based on age group and sex.
+dt11 <- dt1 %>% group_by(VIC_AGE_GROUP) %>% count(VIC_SEX)
+ggplot(dt11,aes(x=VIC_AGE_GROUP,y=n)) + geom_point(aes(col=VIC_SEX), size=3)+ labs(title="Age group impaced based on Sex", y="Count", x="Age Group")
+
+# Analysis for bias --> We analysed this data from the point of age group, location & sex. There could be many other ways this data could be analysed.After carefully analyzing and verifying our area of visualization, I don't see any bias. In my view,we need more data to establish or identify bias in this visualization around my scope of analysis.
+```
